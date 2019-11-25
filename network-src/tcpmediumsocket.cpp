@@ -24,17 +24,17 @@ bool TcpMediumSocket::initObject(const QStringList &whitelist, const int &secs)
     mysett.remip = NetworkConvertHelper::showNormalIP(peerAddress());
     mysett.descr = QString::number(socketDescriptor());
 
-    mysett.isLocalIPv6 = (mysett.remip == "::1");//for internal usage
+    mysett.isLocalConnection = (mysett.remip == "::1" || mysett.remip == "127.0.0.1");//for internal usage
 
     mysett.isStopped = false;
     setSecs2kickOff(secs);
 
     emit append2SmplLogSlot(tr("New connection IP '%1', descriptor '%2'").arg(mysett.remip).arg(mysett.descr));
 
-    if(!mysett.isLocalIPv6 && !whitelist.isEmpty()){
+    if(!mysett.isLocalConnection && !whitelist.isEmpty()){
         //check white list
 
-        if(!TcpMediumTypeConverter::isIpGood(mysett.remip, whitelist)){
+        if(!NetworkConvertHelper::isIpGood(mysett.remip, whitelist)){
 
             emit append2SmplLogSlot(tr("IP '%1' is not in the white list").arg(mysett.remip));
             QTimer::singleShot(1, this, SLOT(closeLater()));
@@ -61,6 +61,11 @@ bool TcpMediumSocket::initObject(const QStringList &whitelist, const int &secs)
 
     QTimer::singleShot(1, this, SLOT(checkConnectionFirstTime()));
     return true;
+}
+
+void TcpMediumSocket::setIdStr(const QString &idstr)
+{
+    mysett.idstr = idstr;
 }
 
 //-----------------------------------------------------------------------------------
@@ -105,9 +110,9 @@ void TcpMediumSocket::stopSlot(QString ip, QString descr)
 
 //-----------------------------------------------------------------------------------
 
-void TcpMediumSocket::write2socket(QByteArray writearr, bool isFromLocalIPv6)
+void TcpMediumSocket::write2socket(QByteArray writearr, bool isLocalConnection)
 {
-    if(mysett.isLocalIPv6 == isFromLocalIPv6)
+    if(mysett.isLocalConnection == isLocalConnection)
         return;
 
     if(!isConnectionWorks()){
@@ -118,6 +123,15 @@ void TcpMediumSocket::write2socket(QByteArray writearr, bool isFromLocalIPv6)
     write(writearr);
     mysett.bytesWrite += quint64(writearr.length());
     onReadWriteSlot();
+}
+//-----------------------------------------------------------------------------------
+void TcpMediumSocket::write2socketByID(QByteArray writearr, QString idstr)
+{
+//    append2logSlot(QString("write2socketByID %1, %2, %3").arg(QString(writearr)).arg(idstr).arg(mysett.idstr));
+    if(idstr == mysett.idstr){
+
+        write2socket(writearr, !mysett.isLocalConnection);
+    }
 }
 
 //-----------------------------------------------------------------------------------
@@ -178,9 +192,11 @@ void TcpMediumSocket::onReadWriteSlot()
 
 void TcpMediumSocket::onReadDataSlot(QByteArray readarr)
 {
-    emit onReadData(readarr, mysett.isLocalIPv6);
+    emit onReadData(readarr, mysett.isLocalConnection, mysett.idstr);
     mysett.bytesRead += quint64(readarr.length());
 }
+
+//-----------------------------------------------------------------------------------
 
 void TcpMediumSocket::closeLater()
 {

@@ -6,6 +6,8 @@
 #include "network-types/tcpmediumtypeconverter.h"
 #include "network-src/tcpmediumsocket.h"
 
+#include "ifaceconnectiondefs.h"
+
 //-------------------------------------------------------------------------------
 
 TheMediumTcpServer::TheMediumTcpServer(QObject *parent) : QTcpServer(parent)
@@ -57,6 +59,15 @@ void TheMediumTcpServer::onThreadStarted()
     mysett.isStopped = false;
     QTimer::singleShot(11, this, SLOT(restartServerLater()));
     QTimer::singleShot(1111, tmrSendLater, SLOT(start()));
+
+
+    QTimer *tmrClearCurrentID = new QTimer(this);
+    tmrClearCurrentID->setSingleShot(true);
+    tmrClearCurrentID->setInterval(11111);
+
+    connect(this, SIGNAL(startTmrClearCurrentID(int)), tmrClearCurrentID, SLOT(start(int)));
+    connect(tmrClearCurrentID, SIGNAL(timeout()), this, SLOT(onTmrClearCurrentID()));
+
 }
 
 //-------------------------------------------------------------------------------
@@ -67,7 +78,7 @@ void TheMediumTcpServer::stopServerAndKickOff(quint16 port)
         append2logService(tr("The server was stopped on the port %1 ").arg(QString::number(mysett.port)));
     }
 }
-
+//-------------------------------------------------------------------------------
 void TheMediumTcpServer::stopServerForced()
 {
     killObjectLater();
@@ -86,7 +97,7 @@ void TheMediumTcpServer::setNewSetts(int secs, int maxconn, QStringList whitelis
     emit setSecs2kickOff(secs);
 
 }
-
+//-------------------------------------------------------------------------------
 void TheMediumTcpServer::setOneServerSett(quint16 port, TcpMediumServerSett sett)
 {
     if(port == mysett.port){
@@ -113,6 +124,17 @@ void TheMediumTcpServer::onConnectionDown(QString remip, QString descr, QString 
 
     append2log(remip, descr, message);//sendInfoHash
 
+    const QString socketidstr = getLocalIpDescrPair(remip, descr);
+
+    if(mysett.localConnectionIDs.contains(socketidstr)){
+        mysett.localConnectionIDs.removeOne(socketidstr);
+    }
+
+    if(mysett.notifIfaceIsFree == socketidstr)
+        mysett.notifIfaceIsFree.clear();
+
+    if(mysett.activeLolacConnectionID == socketidstr)
+        clearCurrentLocalID();
 
 }
 
@@ -143,6 +165,45 @@ void TheMediumTcpServer::stopSocketSlotServer(quint16 port, QString ip, QString 
 {
     if(mysett.port == port)
         emit stopSocketSlot(ip, descr);
+}
+
+void TheMediumTcpServer::onTmrClearCurrentID()
+{
+    clearCurrentLocalID();
+}
+//-------------------------------------------------------------------------------
+void TheMediumTcpServer::clearCurrentLocalID()
+{
+
+    mysett.activeLolacConnectionID.clear();
+
+    if(!mysett.notifIfaceIsFree.isEmpty()){
+        emit write2socketByID(QByteArray(PORT_IS_FREE), mysett.notifIfaceIsFree);
+        mysett.notifIfaceIsFree.clear();
+    }
+}
+
+//-------------------------------------------------------------------------------
+
+void TheMediumTcpServer::onReadDataSlot(QByteArray readarr, bool isLocalConnection, QString idstr)
+{
+    if(isLocalConnection){
+        if(mysett.activeLolacConnectionID != idstr){
+            if(!mysett.activeLolacConnectionID.isEmpty()){
+                if(mysett.notifIfaceIsFree.isEmpty())
+                    mysett.notifIfaceIsFree = idstr;
+
+                //write that iface is busy
+                emit write2socketByID(QByteArray(PORT_IS_BUSY), idstr);
+                return;
+            }
+            mysett.activeLolacConnectionID = idstr;
+        }
+        //start tmr clear connection id
+
+        emit startTmrClearCurrentID(15000);
+    }
+    emit onReadData(readarr, isLocalConnection);
 }
 
 //-------------------------------------------------------------------------------
@@ -236,18 +297,26 @@ void TheMediumTcpServer::incomingConnection(qintptr socketDescr)
         return;
     }
 
+    const QString socketidstr = getLocalIpDescrPair(socket->mysett.remip, socket->mysett.descr);
+
+    if(socket->mysett.isLocalConnection ){
+
+        if(!mysett.localConnectionIDs.contains(socketidstr))
+            mysett.localConnectionIDs.append(socketidstr);
+        connect(this, &TheMediumTcpServer::write2socketByID, socket, &TcpMediumSocket::write2socketByID);
+    }
 
 
 
-
+    socket->setIdStr(socketidstr);
     QVariantHash oneconnection;
     oneconnection.insert("msec", QDateTime::currentMSecsSinceEpoch());
-    mysett.activeconnections.insert(getLocalIpDescrPair(socket->mysett.remip, socket->mysett.descr), oneconnection);
+    mysett.activeconnections.insert(socketidstr, oneconnection);
 
     onReadWrite(socket->mysett.remip, socket->mysett.descr, 0, 0);
 
 
-    connect(socket, &TcpMediumSocket::onReadData, this, &TheMediumTcpServer::onReadData);
+    connect(socket, &TcpMediumSocket::onReadData, this, &TheMediumTcpServer::onReadDataSlot);
     connect(this, &TheMediumTcpServer::onReadData, socket, &TcpMediumSocket::write2socket);
 
     connect(socket, &TcpMediumSocket::onReadWrite, this, &TheMediumTcpServer::onReadWrite);

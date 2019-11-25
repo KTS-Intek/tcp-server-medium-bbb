@@ -1,6 +1,5 @@
 #include "tcpmediumtypeconverter.h"
 
-#include <QRegularExpression>
 
 
 
@@ -23,31 +22,7 @@ QStringList TcpMediumTypeConverter::convertActiveConnection2history(const QVaria
     return l;
 }
 
-//-----------------------------------------------------------------------------------------------------------
 
-bool TcpMediumTypeConverter::isIpGood(const QString &ip, const QStringList &whitelist)
-{
-    if(whitelist.isEmpty())
-        return true;
-
-    for(int i = 0, imax = whitelist.size(); i < imax; i++){
-
-        const QRegularExpression rx(whitelist.at(i), QRegularExpression::ExtendedPatternSyntaxOption);
-
-        if(rx.isValid()){
-            if(rx.match(ip, 0, QRegularExpression::NormalMatch).hasMatch()){
-                return true;
-            }
-        }else{
-            if(ip == whitelist.at(i)){
-                return true;
-            }
-        }
-
-
-    }
-    return false;
-}
 
 //-----------------------------------------------------------------------------------------------------------
 

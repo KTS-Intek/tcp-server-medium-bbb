@@ -24,14 +24,18 @@ public:
         quint32 msecs2kickOff;
 
 
-        bool isLocalIPv6;
+        bool isLocalConnection;
         bool isStopped;
         quint8 kickOffCounter;
-        MySocketSettState() : bytesRead(0), bytesWrite(0), msecs2kickOff(3600), isLocalIPv6(false), isStopped(false), kickOffCounter(0) {}
+
+        QString idstr;
+
+        MySocketSettState() : bytesRead(0), bytesWrite(0), msecs2kickOff(3600), isLocalConnection(false), isStopped(false), kickOffCounter(0) {}
     } mysett;
 
     bool initObject(const QStringList &whitelist, const int &secs);
 
+    void setIdStr(const QString &idstr);
 
 signals:
     //internal
@@ -47,7 +51,7 @@ signals:
     void onReadWrite(QString remip, QString descr, quint64 readbytes, quint64 writebytes);
 
 
-    void onReadData(QByteArray readarr, bool isFromLocalIPv6);
+    void onReadData(QByteArray readarr, bool isLocalConnection, QString idstr);
 
 
 
@@ -60,7 +64,9 @@ public slots:
 
     void stopSlot(QString ip, QString descr);
 
-    void write2socket(QByteArray writearr, bool isFromLocalIPv6);
+    void write2socket(QByteArray writearr, bool isLocalConnection);
+
+    void write2socketByID(QByteArray writearr, QString idstr);
 
 
 private slots:

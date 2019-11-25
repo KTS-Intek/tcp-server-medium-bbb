@@ -31,6 +31,11 @@ public:
         quint8 sendHashCounter;
         bool isStopped;
         quint8 kickOffCounter;
+
+        QStringList localConnectionIDs;
+        QString activeLolacConnectionID;
+        QString notifIfaceIsFree;
+
         MyServerSettState() : port(0), sendHashCounter(0), isStopped(false), kickOffCounter(0) {}
     } mysett;
 
@@ -48,12 +53,15 @@ signals:
 
     void stopSocketSlot(QString ip, QString descr);
 
-//    void write2socket(QByteArray writearr, bool isFromLocalIPv6);
+//    void write2socket(QByteArray writearr, bool isLocalConnection);
 
-    void onReadData(QByteArray readarr, bool isFromLocalIPv6);//it uses as a commutator
+    void onReadData(QByteArray readarr, bool isLocalConnection);//it uses as a commutator
+
+    void write2socketByID(QByteArray writearr, QString idstr);
 
 
 
+    void startTmrClearCurrentID(int msec);
 
 public slots:
     void onThreadStarted();
@@ -79,6 +87,13 @@ public slots:
     void restartServerLater();
 
     void stopSocketSlotServer(quint16 port, QString ip, QString descr);
+
+
+    void onTmrClearCurrentID();
+    void clearCurrentLocalID();
+
+
+    void onReadDataSlot(QByteArray readarr, bool isLocalConnection, QString idstr);//it uses as a commutator
 
 private:
     QString getLogLine(const QString &line);

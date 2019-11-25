@@ -25,7 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 
-VERSION = 0.0.1
+VERSION = 0.0.2
 
 #DEFINES += APPLCTN_NAME=\\\"quick-collect\\\" it is only for GUI
 DEFINES += "MYAPPNAME=\"\\\"tcp-medium-server-bbb\\\"\""
