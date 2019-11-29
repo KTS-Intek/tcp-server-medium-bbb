@@ -29,13 +29,13 @@ public:
         quint8 kickOffCounter;
 
         QString idstr;
-
+        QString prettyidstr;
         MySocketSettState() : bytesRead(0), bytesWrite(0), msecs2kickOff(3600), isLocalConnection(false), isStopped(false), kickOffCounter(0) {}
     } mysett;
 
     bool initObject(const QStringList &whitelist, const int &secs);
 
-    void setIdStr(const QString &idstr);
+    void setIdStr(const QString &idstr, const QString &prettyidstr);
 
 signals:
     //internal
@@ -53,6 +53,7 @@ signals:
 
     void onReadData(QByteArray readarr, bool isLocalConnection, QString idstr);
 
+    void onWriteData(QByteArray writearr, QString idstr);
 
 
 

@@ -35,8 +35,10 @@ public:
         QStringList localConnectionIDs;
         QString activeLolacConnectionID;
         QString notifIfaceIsFree;
+        QString portstr;
 
-        MyServerSettState() : port(0), sendHashCounter(0), isStopped(false), kickOffCounter(0) {}
+        int thelongestifacename;
+        MyServerSettState() : port(0), sendHashCounter(0), isStopped(false), kickOffCounter(0), thelongestifacename(17) {}
     } mysett;
 
 signals:
@@ -62,6 +64,14 @@ signals:
 
 
     void startTmrClearCurrentID(int msec);
+
+
+    void appendLogDataListByServersPort(QString portstr, QString lines);
+
+
+
+    void showHexDump(QByteArray arr, QString ifaceName, bool isRead);
+
 
 public slots:
     void onThreadStarted();
@@ -92,16 +102,22 @@ public slots:
     void onTmrClearCurrentID();
     void clearCurrentLocalID();
 
+    void ifaceLogStr(QString line); //to GUI
 
-    void onReadDataSlot(QByteArray readarr, bool isLocalConnection, QString idstr);//it uses as a commutator
+
+    void onReadDataSlot(const QByteArray &readarr, const bool &isLocalConnection, const QString &idstr);//it uses as a commutator
+
+    void onWriteDataSlot(const QByteArray &writearr, const QString &idstr);
 
 private:
     QString getLogLine(const QString &line);
 
     QString getLocalIpDescrPair(const QString &ip, const QString &descr);
+    QString getLocalIpDescrPairPretty(const QString &ip, const QString &descr);
 
     void append2logService(const QString &line);
 
+    void showHexDumpF(const QByteArray &arr, const QString &ifaceName, const bool &isRead);
 
     bool killObjectLater();
 

@@ -11,7 +11,7 @@ public:
 
     void setupYourSelf();
 
-    void setSettings(const QString &shmemnane, const QString &shmemsema, const QString &filename, const bool &verboseMode);
+    void setSettings(const QString &shmemnane, const QString &shmemsema, const QString &filename, const bool &verboseMode, const QString logsmemo, const QString &logssema);
 
 
 signals:

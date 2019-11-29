@@ -24,6 +24,9 @@ public:
         QString filename;
         bool verboseMode;
 
+        QString shmemnanelogs;
+        QString shmemsemalogs;
+
         QMap<quint16, bool> mapstate;//port - isListenning
         QMap<quint16, QVariantHash> map2serverHistory;//port - history
 
@@ -48,6 +51,8 @@ signals:
     void setOneServerSett(quint16 port, TcpMediumServerSett sett);
 
 
+    void appendLogDataListByServers(QString key, QStringList log, QString splitter, int maxLogSize);
+
 public slots:
     void onThreadStarted();
 
@@ -57,6 +62,9 @@ public slots:
     void setTheseSettings(QVariantHash hashsett, QVariantHash defsett);
 
     void checkActiveServers();
+
+    void appendLogDataListByServersPort(QString portstr, QString lines);
+
 
 };
 

@@ -24,7 +24,9 @@ TheLordOfServicesCover::TheLordOfServicesCover(QObject *parent) : TheLordOfServi
 
 void TheLordOfServicesCover::setupYourSelf()
 {
-    setSettings(SharedMemoHelper::defTcpMediumServerMemoName(), SharedMemoHelper::defTcpMediumServerSemaName(), "", qApp->arguments().contains("-vv") );
+    setSettings(SharedMemoHelper::defTcpMediumServerMemoName(), SharedMemoHelper::defTcpMediumServerSemaName()
+                , "", qApp->arguments().contains("-vv")
+                , SharedMemoHelper::defTcpMediumServerLogsMemoName(), SharedMemoHelper::defTcpMediumServerLogsSemaName());
 
     QThread *t = new QThread(this);
     this->moveToThread(t);
@@ -37,12 +39,14 @@ void TheLordOfServicesCover::setupYourSelf()
 
 }
 
-void TheLordOfServicesCover::setSettings(const QString &shmemnane, const QString &shmemsema, const QString &filename, const bool &verboseMode)
+void TheLordOfServicesCover::setSettings(const QString &shmemnane, const QString &shmemsema, const QString &filename, const bool &verboseMode, const QString logsmemo, const QString &logssema)
 {
     mysett.shmemnane = shmemnane;
     mysett.shmemsema = shmemsema;
     mysett.filename = filename;
     mysett.verboseMode = verboseMode;
+    mysett.shmemnanelogs = logsmemo;
+    mysett.shmemsemalogs = logssema;
 }
 
 void TheLordOfServicesCover::reloadSettingsFromTheMemory()

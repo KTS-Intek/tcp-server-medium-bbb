@@ -6,7 +6,13 @@
 #include "network-types/tcpmediumtypeconverter.h"
 #include "network-src/tcpmediumsocket.h"
 
+///[!] type-converter
+#include "src/shared/ifacehelper.h"
+
+
 #include "ifaceconnectiondefs.h"
+
+
 
 //-------------------------------------------------------------------------------
 
@@ -24,6 +30,7 @@ bool TheMediumTcpServer::setServerSett(const TcpMediumServerSett &sett, const qu
     mysett.activeconnections.clear();
     mysett.log = hashhistory.value("log").toStringList();
     mysett.historyofconnections = hashhistory.value("disl").toStringList();
+    mysett.portstr = QString::number(port);
     setMaxPendingConnections(5);
     return sett.enable;
 }
@@ -68,6 +75,12 @@ void TheMediumTcpServer::onThreadStarted()
     connect(this, SIGNAL(startTmrClearCurrentID(int)), tmrClearCurrentID, SLOT(start(int)));
     connect(tmrClearCurrentID, SIGNAL(timeout()), this, SLOT(onTmrClearCurrentID()));
 
+
+    IfaceHelper *ifceHlpr = new IfaceHelper(true, this);
+    connect(ifceHlpr, SIGNAL(ifaceLogStr(QString)), this, SLOT(ifaceLogStr(QString)) );
+    connect(this, SIGNAL(showHexDump(QByteArray,QString,bool)), ifceHlpr, SLOT(showHexDump(QByteArray,QString,bool)) );
+
+
 }
 
 //-------------------------------------------------------------------------------
@@ -81,6 +94,7 @@ void TheMediumTcpServer::stopServerAndKickOff(quint16 port)
 //-------------------------------------------------------------------------------
 void TheMediumTcpServer::stopServerForced()
 {
+
     killObjectLater();
     close();
     deleteLater();
@@ -153,6 +167,7 @@ void TheMediumTcpServer::onReadWrite(QString remip, QString descr, quint64 readb
 
 void TheMediumTcpServer::restartServerLater()
 {
+    ifaceLogStr(tr("isDisabled %1").arg(int(mysett.isStopped)));
     if(mysett.isStopped)
         return;
     if(!startServer())
@@ -185,8 +200,18 @@ void TheMediumTcpServer::clearCurrentLocalID()
 
 //-------------------------------------------------------------------------------
 
-void TheMediumTcpServer::onReadDataSlot(QByteArray readarr, bool isLocalConnection, QString idstr)
+void TheMediumTcpServer::ifaceLogStr(QString line)
 {
+    emit appendLogDataListByServersPort(mysett.portstr, line);
+}
+
+//-------------------------------------------------------------------------------
+
+void TheMediumTcpServer::onReadDataSlot(const QByteArray &readarr, const bool &isLocalConnection, const QString &idstr)
+{
+
+    showHexDumpF(readarr, idstr, true);
+
     if(isLocalConnection){
         if(mysett.activeLolacConnectionID != idstr){
             if(!mysett.activeLolacConnectionID.isEmpty()){
@@ -208,6 +233,13 @@ void TheMediumTcpServer::onReadDataSlot(QByteArray readarr, bool isLocalConnecti
 
 //-------------------------------------------------------------------------------
 
+void TheMediumTcpServer::onWriteDataSlot(const QByteArray &writearr, const QString &idstr)
+{
+    showHexDumpF(writearr, idstr, false);
+}
+
+//-------------------------------------------------------------------------------
+
 QString TheMediumTcpServer::getLogLine(const QString &line)
 {
     return QString("%1 %2").arg(QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss t")).arg(line);
@@ -220,6 +252,15 @@ QString TheMediumTcpServer::getLocalIpDescrPair(const QString &ip, const QString
     return QString("%1\t%2").arg(ip).arg(descr);
 }
 
+QString TheMediumTcpServer::getLocalIpDescrPairPretty(const QString &ip, const QString &descr)
+{
+    const QString s = QString("%1_%2").arg(ip).arg(descr.rightJustified(2, '0'));
+
+    if(s.length() > mysett.thelongestifacename)
+        mysett.thelongestifacename = qMin(30, s.length());
+    return s;
+}
+
 //-------------------------------------------------------------------------------
 
 void TheMediumTcpServer::append2logService(const QString &line)
@@ -229,6 +270,15 @@ void TheMediumTcpServer::append2logService(const QString &line)
     sendInfoHash();
 }
 
+void TheMediumTcpServer::showHexDumpF(const QByteArray &arr, const QString &ifaceName, const bool &isRead)
+{
+    const int len = ifaceName.length();
+    if(len > mysett.thelongestifacename){
+        mysett.thelongestifacename = qMin(30, len);
+    }
+    emit showHexDump(arr, ifaceName.rightJustified(mysett.thelongestifacename, ' '), isRead);
+}
+
 //-------------------------------------------------------------------------------
 
 bool TheMediumTcpServer::killObjectLater()
@@ -236,6 +286,7 @@ bool TheMediumTcpServer::killObjectLater()
     mysett.kickOffCounter++;
     emit stopAllSocketsSlot();
     if(!mysett.isStopped){
+        ifaceLogStr(tr("stopping"));
         mysett.isStopped = true;
         QTimer::singleShot(555, this, SLOT(deleteLater()));
         return true;
@@ -308,7 +359,7 @@ void TheMediumTcpServer::incomingConnection(qintptr socketDescr)
 
 
 
-    socket->setIdStr(socketidstr);
+    socket->setIdStr(socketidstr, getLocalIpDescrPairPretty(socket->mysett.remip, socket->mysett.descr));
     QVariantHash oneconnection;
     oneconnection.insert("msec", QDateTime::currentMSecsSinceEpoch());
     mysett.activeconnections.insert(socketidstr, oneconnection);
@@ -318,6 +369,7 @@ void TheMediumTcpServer::incomingConnection(qintptr socketDescr)
 
     connect(socket, &TcpMediumSocket::onReadData, this, &TheMediumTcpServer::onReadDataSlot);
     connect(this, &TheMediumTcpServer::onReadData, socket, &TcpMediumSocket::write2socket);
+    connect(socket, &TcpMediumSocket::onWriteData, this, &TheMediumTcpServer::onWriteDataSlot);
 
     connect(socket, &TcpMediumSocket::onReadWrite, this, &TheMediumTcpServer::onReadWrite);
     connect(socket, &TcpMediumSocket::onConnectionDown, this, &TheMediumTcpServer::onConnectionDown);

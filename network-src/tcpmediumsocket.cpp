@@ -63,9 +63,10 @@ bool TcpMediumSocket::initObject(const QStringList &whitelist, const int &secs)
     return true;
 }
 
-void TcpMediumSocket::setIdStr(const QString &idstr)
+void TcpMediumSocket::setIdStr(const QString &idstr, const QString &prettyidstr)
 {
     mysett.idstr = idstr;
+    mysett.prettyidstr = prettyidstr;
 }
 
 //-----------------------------------------------------------------------------------
@@ -121,6 +122,7 @@ void TcpMediumSocket::write2socket(QByteArray writearr, bool isLocalConnection)
     }
 
     write(writearr);
+    emit onWriteData(writearr, mysett.prettyidstr);
     mysett.bytesWrite += quint64(writearr.length());
     onReadWriteSlot();
 }
@@ -192,7 +194,7 @@ void TcpMediumSocket::onReadWriteSlot()
 
 void TcpMediumSocket::onReadDataSlot(QByteArray readarr)
 {
-    emit onReadData(readarr, mysett.isLocalConnection, mysett.idstr);
+    emit onReadData(readarr, mysett.isLocalConnection, mysett.prettyidstr);
     mysett.bytesRead += quint64(readarr.length());
 }
 

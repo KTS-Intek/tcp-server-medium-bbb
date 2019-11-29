@@ -40,6 +40,11 @@ void TheLordOfServices::onThreadStarted()
             mysett.map2serverHistory.insert(p, hashStatus.value(QString::number(p)).toHash());
     }
 
+    SharedMemoWriter *writerlogs = new SharedMemoWriter(mysett.shmemnanelogs, mysett.shmemsemalogs, "", 2222, 60000, mysett.verboseMode);
+    connect(this, &TheLordOfServices::appendLogDataListByServers, writerlogs, &SharedMemoWriter::appendLogDataList);
+    connect(this, &TheLordOfServices::flushAllData, writerlogs, &SharedMemoWriter::flushAllNow);
+
+    writerlogs->initObject(true);
 
     QTimer::singleShot(1111, this, SIGNAL(onReady2receiveData()));
 }
@@ -103,10 +108,18 @@ void TheLordOfServices::checkActiveServers()
 
         connect(server, &TheMediumTcpServer::append2history, this, &TheLordOfServices::append2history);
 
+        connect(server, &TheMediumTcpServer::appendLogDataListByServersPort, this, &TheLordOfServices::appendLogDataListByServersPort);
         thread->start();
 
     }
 
+}
+
+//------------------------------------------------------------------------------------------
+
+void TheLordOfServices::appendLogDataListByServersPort(QString portstr, QString lines)
+{
+    emit appendLogDataListByServers(portstr, lines.split("\n"), "\n", 300);
 }
 
 //------------------------------------------------------------------------------------------
