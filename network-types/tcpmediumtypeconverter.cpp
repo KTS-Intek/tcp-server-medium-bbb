@@ -33,7 +33,7 @@ TcpMediumServerSett TcpMediumTypeConverter::convertFromVarHash(const QVariantHas
     sett.seckill = onesett.value("sec"  , defsett.value("sec")  ).toInt();
     sett.maxconn = onesett.value("max"  , defsett.value("max")  ).toInt();
     sett.memo = onesett.value("memo"    , defsett.value("memo") ).toString();
-    sett.whitelist = onesett.value("wl" , defsett.value("wl")   ).toStringList();
+    sett.allowlist = onesett.value("wl" , defsett.value("wl")   ).toStringList();
 
     return sett;
 }

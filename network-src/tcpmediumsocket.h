@@ -33,7 +33,7 @@ public:
         MySocketSettState() : bytesRead(0), bytesWrite(0), msecs2kickOff(3600), isLocalConnection(false), isStopped(false), kickOffCounter(0) {}
     } mysett;
 
-    bool initObject(const QStringList &whitelist, const int &secs);
+    bool initObject(const QStringList &allowlist, const int &secs);
 
     void setIdStr(const QString &idstr, const QString &prettyidstr);
 
@@ -97,7 +97,7 @@ private:
 
     bool closeAndKillLater();
 
-    bool isConnectionWorks();
+    bool isConnectionWorking();
 
     void closeAndKillLaterForced();
 

@@ -10,12 +10,12 @@ struct TcpMediumServerSett
     int maxconn;
     int seckill;
     QString memo;
-    QStringList whitelist;
+    QStringList allowlist;// whitelist;
 
     TcpMediumServerSett() : enable(false) {}
 
-    TcpMediumServerSett(const bool &enable, const int &maxconn, const int &seckill, const QString &memo, const QStringList &whitelist) :
-        enable(enable), maxconn(maxconn), seckill(seckill), memo(memo), whitelist(whitelist) {}
+    TcpMediumServerSett(const bool &enable, const int &maxconn, const int &seckill, const QString &memo, const QStringList &allowlist) :
+        enable(enable), maxconn(maxconn), seckill(seckill), memo(memo), allowlist(allowlist) {}
 };
 
 #endif // TCPSERVERMEDIUMTYPES_H

@@ -19,7 +19,7 @@ TcpMediumSocket::TcpMediumSocket(QObject *parent) : QTcpSocket(parent)
 
 //-----------------------------------------------------------------------------------
 
-bool TcpMediumSocket::initObject(const QStringList &whitelist, const int &secs)
+bool TcpMediumSocket::initObject(const QStringList &allowlist, const int &secs)
 {
     mysett.remip = NetworkConvertHelper::showNormalIP(peerAddress());
     mysett.descr = QString::number(socketDescriptor());
@@ -31,12 +31,12 @@ bool TcpMediumSocket::initObject(const QStringList &whitelist, const int &secs)
 
     emit append2SmplLogSlot(tr("New connection IP '%1', descriptor '%2'").arg(mysett.remip).arg(mysett.descr));
 
-    if(!mysett.isLocalConnection && !whitelist.isEmpty()){
+    if(!mysett.isLocalConnection && !allowlist.isEmpty()){
         //check white list
 
-        if(!NetworkConvertHelper::isIpGood(mysett.remip, whitelist)){
+        if(!NetworkConvertHelper::isIpGood(mysett.remip, allowlist)){
 
-            emit append2SmplLogSlot(tr("IP '%1' is not in the white list").arg(mysett.remip));
+            emit append2SmplLogSlot(tr("IP '%1' is not in the allowed list").arg(mysett.remip));
             QTimer::singleShot(1, this, SLOT(closeLater()));
             return false;
         }
@@ -116,7 +116,7 @@ void TcpMediumSocket::write2socket(QByteArray writearr, bool isLocalConnection)
     if(mysett.isLocalConnection == isLocalConnection)
         return;
 
-    if(!isConnectionWorks()){
+    if(!isConnectionWorking()){
         onDisconnected();
         return;
     }
@@ -164,7 +164,7 @@ void TcpMediumSocket::onKickOffTmr()
 
 void TcpMediumSocket::checkConnectionFirstTime()
 {
-    if(!isConnectionWorks())
+    if(!isConnectionWorking())
         onDisconnected();
 }
 
@@ -238,7 +238,7 @@ bool TcpMediumSocket::closeAndKillLater()
 
 //-----------------------------------------------------------------------------------
 
-bool TcpMediumSocket::isConnectionWorks()
+bool TcpMediumSocket::isConnectionWorking()
 {
     return (state() == QTcpSocket::ConnectedState);
 }

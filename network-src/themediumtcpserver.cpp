@@ -102,11 +102,11 @@ void TheMediumTcpServer::stopServerForced()
 
 //-------------------------------------------------------------------------------
 
-void TheMediumTcpServer::setNewSetts(int secs, int maxconn, QStringList whitelist)
+void TheMediumTcpServer::setNewSetts(int secs, int maxconn, QStringList allowlist)
 {
     mysett.sett.seckill = secs;
     mysett.sett.maxconn = maxconn;
-    mysett.sett.whitelist = whitelist;
+    mysett.sett.allowlist = allowlist;
 
     emit setSecs2kickOff(secs);
 
@@ -115,7 +115,7 @@ void TheMediumTcpServer::setNewSetts(int secs, int maxconn, QStringList whitelis
 void TheMediumTcpServer::setOneServerSett(quint16 port, TcpMediumServerSett sett)
 {
     if(port == mysett.port){
-        setNewSetts(sett.seckill, sett.maxconn, sett.whitelist);
+        setNewSetts(sett.seckill, sett.maxconn, sett.allowlist);
     }
 
 }
@@ -343,7 +343,7 @@ void TheMediumTcpServer::incomingConnection(qintptr socketDescr)
     socket->setSecs2kickOff(mysett.sett.seckill);
 
 
-    if(!socket->initObject(mysett.sett.whitelist, mysett.sett.seckill)){
+    if(!socket->initObject(mysett.sett.allowlist, mysett.sett.seckill)){
 
         return;
     }

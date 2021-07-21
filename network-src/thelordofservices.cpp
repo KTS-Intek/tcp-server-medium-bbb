@@ -92,6 +92,8 @@ void TheLordOfServices::checkActiveServers()
         TheMediumTcpServer *server = new TheMediumTcpServer;
         QThread *thread = new QThread;
 
+        thread->setObjectName(QString("TMTS%1").arg(p));
+
         server->moveToThread(thread);
         connect(this, SIGNAL(killAllThreads()), server, SLOT(stopServerForced()));
 

@@ -81,7 +81,7 @@ public slots:
 
     void stopServerForced();
 
-    void setNewSetts(int secs, int maxconn, QStringList whitelist);
+    void setNewSetts(int secs, int maxconn, QStringList allowlist);
 
     void setOneServerSett(quint16 port, TcpMediumServerSett sett);
 

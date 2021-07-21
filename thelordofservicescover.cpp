@@ -28,7 +28,10 @@ void TheLordOfServicesCover::setupYourSelf()
                 , "", qApp->arguments().contains("-vv")
                 , SharedMemoHelper::defTcpMediumServerLogsMemoName(), SharedMemoHelper::defTcpMediumServerLogsSemaName());
 
+
     QThread *t = new QThread(this);
+    t->setObjectName("TheLordOfServicesCover");
+
     this->moveToThread(t);
 
     connect(this, SIGNAL(destroyed(QObject*)), t, SLOT(quit()));
@@ -61,6 +64,7 @@ void TheLordOfServicesCover::initObjects()
 
     extSocket->initializeSocket(MTD_EXT_NAME_TCP_MEDIUM_SERVER);
     QThread *extSocketThrd = new QThread(this);
+    extSocketThrd->setObjectName("TcpServerMediumLocalSocket");
     extSocket->moveToThread(extSocketThrd);
 
     connect(extSocketThrd, &QThread::started, extSocket, &TcpServerMediumLocalSocket::onThreadStarted);
