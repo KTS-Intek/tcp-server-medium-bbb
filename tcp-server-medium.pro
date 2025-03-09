@@ -30,10 +30,11 @@ VERSION = 0.0.3
 #DEFINES += APPLCTN_NAME=\\\"quick-collect\\\" it is only for GUI
 DEFINES += "MYAPPNAME=\"\\\"tcp-medium-server-bbb\\\"\""
 DEFINES += "MYAPPOWNER=\"\\\"KTS-Intek Ltd\\\"\""
-DEFINES += "MYAPPOWNERSITE=\"\\\"http://kts-intek.com\\\"\""
+DEFINES += "MYAPPOWNERSITE=\"\\\"https://kts-intek.com\\\"\""
 
 DEFINES += DEV_TYPE_UC=1
 DEFINES += DISABLE_RUN_PROCESS=1
+DEFINES += ENABLE_SETTLOADER4MATILDA
 
 
 include(../../Matilda-units/matilda-base/type-converter/type-converter.pri)
